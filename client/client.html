@@ -6,7 +6,46 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
+    const handleResponse = (xhr) => {
+        const type = xhr.getResponseHeader("content-type");
+        let message = "???";
+        let id = "???";
+        if(type === 'application/json'){
+            const obj = JSON.parse(xhr.response); // turn it back into an object
+            message = obj.message;
+            id = obj.id;
+        }else if(type === 'text/xml'){
+            message = xhr.responseXML.querySelector("message").textContent;
+            id = xhr.responseXML.querySelector("id").textContent;
+        };
+			
+        document.querySelector('#content').innerHTML = `
+            <hr>
+			<h1>${type}: ${id}</h1>
+			<p>Message: ${message}</p>
+			`;
+    };
 
+    const sendAjax = (url, acceptedType) => {
+        const xhr = new XMLHttpRequest();
+			
+        xhr.open("GET",url);
+        xhr.setRequestHeader('Accept', acceptedType);
+			
+        xhr.onload = () => handleResponse(xhr);
+	
+        xhr.send();
+    };
+
+    const init = () => {
+        const requestButton = document.querySelector("#send");
+        const page = document.querySelector("#page");
+        const type = document.querySelector("#type");
+    
+        requestButton.onclick = () => sendAjax(page.value, type.value);
+    }
+    
+    window.onload = init;
   </script>
 </head>
 <body>
